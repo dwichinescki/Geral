@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Scrutor" Version="3.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PrbSDConvenios.Back.Model\PrbSDConvenios.Back.Model.csproj" />
+    <ProjectReference Include="..\PrbSDConvenios.Back.Domain\PrbSDConvenios.Back.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
