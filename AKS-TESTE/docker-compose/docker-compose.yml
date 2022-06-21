@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  prbsdconvenios.back.webapi:
+    image: crprbdev.azurecr.io/aks-teste
+    build:
+      context: ../
+      dockerfile: src/PrbSDConvenios.Back.WebApi/Dockerfile
