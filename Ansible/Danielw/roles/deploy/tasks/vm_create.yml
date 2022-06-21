@@ -1,0 +1,93 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: False
+  vars:
+  tasks:
+  - name: Create a Windows Virtual Machine
+    vmware_guest:
+      hostname: 10.41.22.202
+      username: terraform@vsphere.local
+      password: P4r4n4.2022
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      datacenter: VIVO
+      cluster: VIVO_CL04_HOMOLOG
+      folder: 26_Ansible
+      template: TP_TERRAFORM_WIN_2019
+      datastore: DSC_HOMOLOG
+      disk:
+      - size_gb: '80'
+      hardware:
+        memory_mb: 8192
+        num_cpus: 4
+        annotation: VM criada com Ansible
+      networks:
+        - name: VM_HOMOLOG
+          ip: 10.140.10.233
+          netmask: 255.255.255.0
+          gateway: 10.140.10.1
+          domain: prbhomolog.local
+          dns_servers:
+          - 10.140.10.200
+          - 10.140.10.201
+      customization:
+        hostname: tprb10233
+        dns_servers:
+        - 10.140.10.200
+        - 10.140.10.201
+        domain: prbhomolog.local
+        password: P4r4n4.2022
+        joindomain: prbhomolog.local
+        domainadmin: terraform@prbhomolog.local
+        domainadminpassword: P4r4n4.2022
+        windows_remote_desktop_enabled: true
+        windows_remote_desktop_firewall: allow
+      wait_for_customization: yes
+      wait_for_ip_address: True
+      state: poweredon
+    delegate_to: localhost
+    register: disk_facts
+  - name: Add Controller 1
+    community.vmware.vmware_guest_controller:
+      hostname: 10.41.22.202
+      username: terraform@vsphere.local
+      password: P4r4n4.2022
+      datacenter: VIVO
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      controllers:
+      - state: present
+        type: paravirtual
+    delegate_to: localhost
+  - name: Add disks to virtual machine
+    community.vmware.vmware_guest_disk:
+      hostname: 10.41.22.202
+      username: terraform@vsphere.local
+      password: P4r4n4.2022
+      datacenter: VIVO
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      disk:
+        - size_gb: 30
+          type: eagerzeroedthick
+          datastore: DSC_HOMOLOG
+          state: present
+          scsi_controller: 1
+          unit_number: 0
+          scsi_type: 'paravirtual'
+        - size_gb: 50
+          type: eagerzeroedthick
+          datastore: DSC_HOMOLOG
+          state: present
+          scsi_controller: 1
+          unit_number: 1
+          scsi_type: 'paravirtual'
+        - size_gb: 40
+          type: eagerzeroedthick
+          datastore: DSC_HOMOLOG
+          state: present
+          scsi_controller: 1
+          unit_number: 2
+          scsi_type: 'paravirtual'
+    delegate_to: localhost

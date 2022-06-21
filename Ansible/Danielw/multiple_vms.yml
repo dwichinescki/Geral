@@ -1,0 +1,13 @@
+---
+vcenter_hostname: 10.41.22.202
+username: terraform@vsphere.local
+password: P4r4n4.2022
+folder: 26_Ansible
+datastore: DSC_HOMOLOG
+vmtemplate: TP_TERRAFORM_WIN_2019
+#customization_spec: <your customization spec>
+vmcluster: VIVO_CL04_HOMOLOG
+servers:
+  - TPRB10231
+  #- test19_02
+  #- test19_03

@@ -1,0 +1,66 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: False
+  vars:
+  tasks:
+  - name: Load vars file
+    include_vars: vars.yaml
+  - name: Add Controller 1
+    community.vmware.vmware_guest_controller:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: VIVO
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      controllers:
+      - state: present
+        type: paravirtual
+    delegate_to: localhost
+  - name: Add disks to virtual machine
+    vmware_guest_disk:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: "{{ vars.datacenter }}"
+      validate_certs: no
+      name: "{{ vars.vm_name }}"
+      disk:
+        - size_gb: "{{ vars.disk2_size }}"
+          type: eagerzeroedthick
+          datastore: "{{ vars.datastore }}"
+          state: present
+          scsi_controller: 1
+          unit_number: 0
+  - name: Add disks to virtual machine
+    vmware_guest_disk:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: "{{ vars.datacenter }}"
+      validate_certs: no
+      name: "{{ vars.vm_name }}"
+      disk:
+        - size_gb: "{{ vars.disk3_size }}"
+          type: eagerzeroedthick
+          datastore: "{{ vars.datastore }}"
+          state: present
+          scsi_controller: 1
+          unit_number: 1
+  - name: Add disks to virtual machine
+    vmware_guest_disk:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: "{{ vars.datacenter }}"
+      validate_certs: no
+      name: "{{ vars.vm_name }}"
+      disk:
+        - size_gb: "{{ vars.disk4_size }}"
+          type: eagerzeroedthick
+          datastore: "{{ vars.datastore }}"
+          state: present
+          scsi_controller: 1
+          unit_number: 2
+    register: disk_facts

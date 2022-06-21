@@ -1,0 +1,1439 @@
+---
+- hosts: windows_funcao_app_hml
+  gather_facts: no
+
+#  vars:
+#    iis_pwd: "s.s.d0Grup0"
+
+  tasks:
+
+  - name: Load vars file
+    include_vars: vars.yaml
+
+  # Desabilita Windows Firewall
+  - name: Disable Domain firewall
+    win_firewall:
+      state: disabled
+      profiles:
+      - Domain
+    tags: disable_firewall
+
+# Configura Timezone
+  - name: "Set the TimeZone"
+    win_timezone:
+      timezone: "E. South America Standard Time"
+
+# Altera letra do CD-ROM de D para E
+  - name: Change the CD-ROM from D to E
+    win_shell: |
+        $cd = $NULL
+        $cd = Get-WMIObject -Class Win32_CDROMDrive -ComputerName $env:COMPUTERNAME -ErrorAction Stop
+        if ($cd.Drive -eq "D:")
+        {
+           Write-Output "Changing CD Drive letter from D: to E:"
+           Set-WmiInstance -InputObject ( Get-WmiObject -Class Win32_volume -Filter "DriveLetter = 'D:'" ) -Arguments @{DriveLetter='E:'}
+        }
+
+  - name: Get disk facts
+    win_disk_facts:
+
+  - name: Initialize Disk 1
+    win_shell: "Initialize-Disk -Number 1"
+
+  - name: Create Partition Disk 1 Drive D
+    win_partition:
+      drive_letter: "D"
+      partition_size: -1
+      disk_number: "1"
+
+  - name: Format the partition as NTFS Drive D
+    win_format:
+      drive_letter: "D"
+      file_system: NTFS
+      new_label: APP
+
+  - name: Add Install share
+    win_share:
+      name: install
+      description: Config Servidor
+      path: C:\Temp
+      list: no
+      full: Everyone
+
+  - name: Copy folder to c:\temp (results in C:\Temp\temp_files)
+    win_copy:
+      #src: /mnt/c/Temp/automation/Install/pacotes
+      src: /repo_ansible/install/pacotes #Servidor LPRBH10055 - 10.140.10.55
+      dest: \\10.140.10.231\install
+
+#Criação diretórios de Aplicação
+  - name: Create struture directory Funcao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos
+      state: directory
+  - name: Create struture directory Autbank
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Autbank
+      state: directory
+  - name: Create struture directory Funcao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao
+      state: directory
+  - name: Create struture directory IIS Default
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\inetpub
+      state: directory
+  - name: Create struture directory ParanaBanco
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\ParanaBanco
+      state: directory
+  - name: Create struture directory Servicos
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Servicos
+      state: directory
+  - name: Create struture directory Autbank-Sistemas
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Autbank\Sistemas
+      state: directory
+  - name: Create struture directory C3
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\C3
+      state: directory
+  - name: Create struture directory Consulta Saldo Devedor (Produção)
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\Consulta Saldo Devedor (Produção) 
+      state: directory
+  - name: Create struture directory CSGDuplo
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\CSGDuplo
+      state: directory
+  - name: Create struture directory FI.AUT.CMD
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.AUT.CMD
+      state: directory
+  - name: Create struture directory FI.CDC.CMD.Liberacoes
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.CDC.CMD.Liberacoes
+      state: directory
+  - name: Create struture directory FI.CTC.CMD
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.CTC.CMD
+      state: directory
+  - name: Create struture directory FI.MCB.CS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.MCB.CS
+      state: directory
+  - name: Create struture directory FI.RL.CMD
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.RL.CMD
+      state: directory
+  - name: Create struture directory FI.WebAPI.AverbacaoOnline
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.WebAPI.AverbacaoOnline
+      state: directory
+  - name: Create struture directory FI.WebAPI.INSS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FI.WebAPI.INSS
+      state: directory
+  - name: Create struture directory FIApiAutEsteira
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutEsteira
+      state: directory
+  - name: Create struture directory FIApiAutorizadorConsultarInfoPlanProp
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutorizadorConsultarInfoPlanProp
+      state: directory
+  - name: Create struture directory FIApiAutProposta
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutProposta
+      state: directory
+  - name: Create struture directory FIApiCdcRelInformeRendimentos
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIApiCdcRelInformeRendimentos
+      state: directory
+  - name: Create struture directory FIApiPropostaFGTS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIApiPropostaFGTS
+      state: directory
+  - name: Create struture directory FICTC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FICTC
+      state: directory
+  - name: Create struture directory CTC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FICTC\CTC
+      state: directory
+  - name: Create struture directory FIWebAPIFGTSSaldos
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSSaldos
+      state: directory
+  - name: Create struture directory FIWebAPIFGTSSolicitarReserva
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSSolicitarReserva
+      state: directory
+  - name: Create struture directory FIWebAPIFGTSStatusReserva
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSStatusReserva
+      state: directory
+  - name: Create struture directory FluxogramaEsteira
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FluxogramaEsteira
+      state: directory
+  - name: Create struture directory Linha de Comando C3
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\Linha de Comando C3
+      state: directory
+  - name: Create struture directory LogAverbacaoOnline
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\LogAverbacaoOnline
+      state: directory
+  - name: Create struture directory MCBWeb
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MCBWeb
+      state: directory
+  - name: Create struture directory MiniSiteAutorizador
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MiniSiteAutorizador
+      state: directory
+  - name: Create struture directory Monitor
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\Monitor
+      state: directory
+  - name: Create struture directory MonitorAmbiente
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MonitorAmbiente
+      state: directory
+  - name: Create struture directory MotorAverbacao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao
+      state: directory
+  - name: Create struture directory pluginReqLib
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\pluginReqLib
+      state: directory
+  - name: Create struture directory PositivoWeb
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\PositivoWeb
+      state: directory
+  - name: Create struture directory RegChave
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\RegChave
+      state: directory
+  - name: Create struture directory SCC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\SCC
+      state: directory
+  - name: Create struture directory SCCWebEmpregador
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\SCC\SCCWebEmpregador
+      state: directory
+  - name: Create struture directory Sistemas
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\Sistemas
+      state: directory
+  - name: Create struture directory SubSiteFGTS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\SubSiteFGTS
+      state: directory
+  - name: Create struture directory UDLS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\UDLS
+      state: directory
+  - name: Create struture directory WebAcesso
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebAcesso
+      state: directory
+  - name: Create struture directory WebAutorizador
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebAutorizador
+      state: directory
+  - name: Create struture directory WebBacen
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebBacen
+      state: directory
+  - name: Create struture directory WebCCob
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebCCob
+      state: directory
+  - name: Create struture directory WebCDC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebCDC
+      state: directory
+  - name: Create struture directory WebCdcContabil
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebCdcContabil
+      state: directory
+  - name: Create struture directory WebComissao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebComissao
+      state: directory
+  - name: Create struture directory WebFGTS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebFGTS
+      state: directory
+  - name: Create struture directory WebIntegracaoDuplo
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebIntegracaoDuplo
+      state: directory
+  - name: Create struture directory WebLiberacao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebLiberacao
+      state: directory
+  - name: Create struture directory WebTabelas
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WebTabelas
+      state: directory
+  - name: Create struture directory WsAcesso
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WsAcesso
+      state: directory
+  - name: Create struture directory WsAutorizador
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WsAutorizador
+      state: directory
+  - name: Create struture directory WsCDC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WsCDC
+      state: directory
+  - name: Create struture directory WsCDC_CRM
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WsCDC_CRM
+      state: directory
+  - name: Create struture directory WSConsultasFuncao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WSConsultasFuncao
+      state: directory
+  - name: Create struture directory WSDuplo
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WSDuplo
+      state: directory
+  - name: Create struture directory WSDuploControle
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WSDuploControle
+      state: directory
+  - name: Create struture directory WSGEDOC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WSGEDOC
+      state: directory
+  - name: Create struture directory WsMonitor
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WsMonitor
+      state: directory
+  - name: Create struture directory WSSIC
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\WSSIC
+      state: directory
+  - name: Create struture directory FI.WebAPI.AverbacaoOnline
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FI.WebAPI.AverbacaoOnline
+      state: directory
+  - name: Create struture directory FIApiEmprConsultarMargem
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FIApiEmprConsultarMargem
+      state: directory
+  - name: Create struture directory FIApiEmprConsultaStatusAverbacao
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FIApiEmprConsultaStatusAverbacao
+      state: directory
+  - name: Create struture directory FIWebAPIINSS
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIINSS
+      state: directory
+  - name: Create struture directory FIWebAPIAverbacaoOnline
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIAverbacaoOnline
+      state: directory
+  - name: Create struture directory wwwroot
+    win_file:
+      path: D:\ParanaBanco\Aplicativos\inetpub\wwwroot
+      state: directory
+
+# CRIAÇÃO USUÁRIOS
+  - name: Create user WebAutorizador
+    win_user:
+      name: iis_WebAutorizador
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebAutorizador
+      groups:
+        - IIS_IUSRS
+  - name: Create user SCC
+    win_user:
+      name: iis_SCC
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebAutorizador
+      groups:
+        - IIS_IUSRS
+  - name: Create user Default
+    win_user:
+      name: iis_Default
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS Default
+      groups:
+        - IIS_IUSRS
+  - name: Create user FluxogramaEsteir
+    win_user:
+      name: iis_FluxogramaEsteir
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS FluxogramaEsteir
+      groups:
+        - IIS_IUSRS
+  - name: Create user MonitorAmbiente
+    win_user:
+      name: iis_MonitorAmbiente
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS MonitorAmbiente
+      groups:
+        - IIS_IUSRS
+  - name: Create user WsAcesso 
+    win_user:
+      name: iis_WsAcesso
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WsAcesso
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSCDC 
+    win_user:
+      name: iis_WSCDC
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSCDC
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSCDC_CRM 
+    win_user:
+      name: iis_WSCDC_CRM
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSCDC_CRM
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSGedoc 
+    win_user:
+      name: iis_WSGedoc
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSGedoc
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSSIC 
+    win_user:
+      name: iis_WSSIC
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSSIC
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSIncDuploContro 
+    win_user:
+      name: iis_WSIncDuploContro
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSIncDuploContro
+      groups:
+        - IIS_IUSRS
+  - name: Create user WSConsultasFunca 
+    win_user:
+      name: iis_WSConsultasFunca
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WSConsultasFunca
+      groups:
+        - IIS_IUSRS
+  - name: Create user CSGDuplo 
+    win_user:
+      name: iis_CSGDuplo
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS CSGDuplo
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebIntegracaoDup  
+    win_user:
+      name: iis_WebIntegracaoDup
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebIntegracaoDup
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebCDC 
+    win_user:
+      name: iis_WebCDC
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebCDC
+      groups:
+        - IIS_IUSRS
+  - name: Create user WsMonitor 
+    win_user:
+      name: iis_WsMonitor
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WsMonitor
+      groups:
+        - IIS_IUSRS
+  - name: Create user WsAutorizador 
+    win_user:
+      name: iis_WsAutorizador
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WsAutorizador
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebComissao 
+    win_user:
+      name: iis_WebComissao
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebComissao
+      groups:
+        - IIS_IUSRS
+  - name: Create user MiniSiteAutoriza 
+    win_user:
+      name: iis_MiniSiteAutoriza
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS MiniSiteAutoriza
+      groups:
+        - IIS_IUSRS
+  - name: Create user FIApiAutorizador 
+    win_user:
+      name: iis_FIApiAutorizador
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS FIApiAutorizador
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebCcob 
+    win_user:
+      name: iis_WebCcob
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebCcob
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebLiberacao 
+    win_user:
+      name: iis_WebLiberacao
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebLiberacao
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebTabelas 
+    win_user:
+      name: iis_WebTabelas
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebTabelas
+      groups:
+        - IIS_IUSRS
+  - name: Create user C3
+    win_user:
+      name: iis_C3
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS C3
+      groups:
+        - IIS_IUSRS
+  - name: Create user MCBWeb 
+    win_user:
+      name: iis_MCBWeb
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS MCBWeb
+      groups:
+        - IIS_IUSRS
+  - name: Create user AverbacaoOnline 
+    win_user:
+      name: iis_AverbacaoOnline
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS AverbacaoOnline
+      groups:
+        - IIS_IUSRS
+  - name: Create user ConsultarMargem 
+    win_user:
+      name: iis_ConsultarMargem
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS ConsultarMargem
+      groups:
+        - IIS_IUSRS
+  - name: Create user ConsultaAverba
+    win_user:
+      name: iis_ConsultaAverba
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS ConsultaAverba
+      groups:
+        - IIS_IUSRS
+  - name: Create user infrendimentos
+    win_user:
+      name: iis_infrendimentos
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS infrendimentos
+      groups:
+        - IIS_IUSRS
+  - name: Create user fiwebapi 
+    win_user:
+      name: iis_fiwebapi
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS fiwebapi
+      groups:
+        - IIS_IUSRS
+  - name: Create user fiwebaverb 
+    win_user:
+      name: iis_fiwebaverb
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS fiwebaverb
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebBacen
+    win_user:
+      name: iis_WebBacen
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebBacen
+      groups:
+        - IIS_IUSRS
+  - name: Create user webcdcontabil
+    win_user:
+      name: iis_webcdcontabil
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS webcdcontabil
+      groups:
+        - IIS_IUSRS
+  - name: Create user FGTS 
+    win_user:
+      name: iis_fgts
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS FGTS
+      groups:
+        - IIS_IUSRS
+  - name: Create user WebAcesso  
+    win_user:
+      name: iis_WebAcesso
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS WebAcesso
+      groups:
+        - IIS_IUSRS
+  - name: Create user positivoweb
+    win_user:
+      name: iis_positivoweb
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS positivoweb
+      groups:
+        - IIS_IUSRS
+  - name: Create user FICTC
+    win_user:
+      name: iis_fictc
+      password: "{{ iis_pwd }}"
+      state: present
+      password_never_expires: yes
+      description: Usuario IIS FICTC
+      groups:
+        - IIS_IUSRS
+
+# AJUSTE PERMISSÃO DIRETÓRIOS
+
+  - name: Add IIS_IUSRS allow rights
+    win_acl:
+      path: D:\ParanaBanco
+      user: IIS_IUSRS
+      rights: FullControl
+      type: allow
+      state: present
+      inherit: ContainerInherit, ObjectInherit
+      propagation: 'None'
+
+  - name: Install .Net 3.5 from source
+    win_feature:
+      name: NET-Framework-Core
+      source: C:\Temp\pacotes\sxs
+      state: present
+    register: result
+  
+  - name: Install IIS web server
+    win_feature:
+      name: Web-Server
+      state: present
+
+  - name: Install IIS Feature Funcao
+    win_feature:
+      name: 
+      - Web-Http-Redirect
+      - Web-Http-Logging
+      - Web-Custom-Logging
+      - Web-Log-Libraries
+      - Web-Http-Tracing
+      - Web-Stat-Compression
+      - Web-Dyn-Compression
+      - Web-Filtering
+      - Web-Basic-Auth
+      - Web-CertProvider
+      - Web-Client-Auth
+      - Web-Cert-Auth
+      - Web-Windows-Auth
+      - Web-Net-Ext
+      - Web-Net-Ext45
+      - Web-ASP
+      - Web-Asp-Net
+      - Web-Asp-Net45
+      - Web-ISAPI-Ext
+      - Web-ISAPI-Filter
+      - Web-Mgmt-Console
+      state: present
+      include_sub_features: yes
+    register: win_feature
+
+  - name: Reboot if necessary
+    win_reboot:
+    when: win_feature.reboot_required
+
+# Criacao dos Application Pools
+
+  - name: Criacao WebAutorizador Application Pool
+    win_iis_webapppool:
+      name: WebAutorizador
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebAcesso Application Pool
+    win_iis_webapppool:
+      name: WebAcesso
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao SCC Application Pool
+    win_iis_webapppool:
+      name: SCC
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao PositivoWeb Application Pool
+    win_iis_webapppool:
+      name: PositivoWeb
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FICTC Application Pool
+    win_iis_webapppool:
+      name: FICTC
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao Default Application Pool
+    win_iis_webapppool:
+      name: Default
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FluxogramaEsteira Application Pool
+    win_iis_webapppool:
+      name: FluxogramaEsteira
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao MonitorAmbiente Application Pool
+    win_iis_webapppool:
+      name: MonitorAmbiente
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WsAcesso Application Pool
+    win_iis_webapppool:
+      name: WsAcesso
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSCDC Application Pool
+    win_iis_webapppool:
+      name: WSCDC
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSCDC_CRM Application Pool
+    win_iis_webapppool:
+      name: WSCDC_CRM
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSGedoc Application Pool
+    win_iis_webapppool:
+      name: WSGedoc
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSSIC Application Pool
+    win_iis_webapppool:
+      name: WSSIC
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSIncDuploControle Application Pool
+    win_iis_webapppool:
+      name: WSIncDuploControle
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WSConsultasFuncao Application Pool
+    win_iis_webapppool:
+      name: WSConsultasFuncao
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao CSGDuplo Application Pool
+    win_iis_webapppool:
+      name: CSGDuplo
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebIntegracaoDuplo Application Pool
+    win_iis_webapppool:
+      name: WebIntegracaoDuplo
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebCDC Application Pool
+    win_iis_webapppool:
+      name: WebCDC
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WsMonitor Application Pool
+    win_iis_webapppool:
+      name: WsMonitor
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WsAutorizador Application Pool
+    win_iis_webapppool:
+      name: WsAutorizador
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebComissao Application Pool
+    win_iis_webapppool:
+      name: WebComissao
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao MiniSiteAutorizador Application Pool
+    win_iis_webapppool:
+      name: MiniSiteAutorizador
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WsDuploControle Application Pool
+    win_iis_webapppool:
+      name: WsDuploControle
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FIApiAutorizadorConsultarInfoPlanProp Application Pool
+    win_iis_webapppool:
+      name: FIApiAutorizadorConsultarInfoPlanProp
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebCcob Application Pool
+    win_iis_webapppool:
+      name: WebCcob
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebLiberacao Application Pool
+    win_iis_webapppool:
+      name: WebLiberacao
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebTabelas Application Pool
+    win_iis_webapppool:
+      name: WebTabelas
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao C3 Application Pool
+    win_iis_webapppool:
+      name: C3
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao MCBWeb Application Pool
+    win_iis_webapppool:
+      name: MCBWeb
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao AverbacaoOnline Application Pool
+    win_iis_webapppool:
+      name: AverbacaoOnline
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao ConsultarMargem Application Pool
+    win_iis_webapppool:
+      name: ConsultarMargem
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao ConsultaStatusAverbacao Application Pool
+    win_iis_webapppool:
+      name: ConsultaStatusAverbacao
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FIApiCdcRelInformeRendimentos Application Pool
+    win_iis_webapppool:
+      name: FIApiCdcRelInformeRendimentos
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FIWebAPIINSS Application Pool
+    win_iis_webapppool:
+      name: FIWebAPIINSS
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FIWebAPIAverbacaoOnline Application Pool
+    win_iis_webapppool:
+      name: FIWebAPIAverbacaoOnline
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebBacen Application Pool
+    win_iis_webapppool:
+      name: WebBacen
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao WebCdcContabil Application Pool
+    win_iis_webapppool:
+      name: WebCdcContabil
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+  - name: Criacao FGTS Application Pool
+    win_iis_webapppool:
+      name: FGTS
+      state: started
+      attributes:
+        managedRuntimeVersion: v4.0
+
+# Remocao do Default Web Site criado com a instalacao do IIS
+
+  - name: Remove Default Web Site
+    win_iis_website:
+      name: "Default Web Site"
+      state: absent
+
+# Criacao dos WebSItes
+
+  - name: WebAutorizador IIS site
+    win_iis_website:
+      name: WebAutorizador
+      state: started
+      port: 80
+      ip: '*'
+      hostname: autorizador_hml_2.prbhomolog.local
+      application_pool: WebAutorizador
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebAutorizador
+      parameters: logfile.directory::D:\ParanaBanco\Aplicativos\Funcao\WebAutorizador\logs
+    register: website
+
+  - name: SCC IIS site
+    win_iis_website:
+      name: SCC
+      state: started
+      port: 80
+      ip: '*'
+      hostname: scc_hml_2.prbhomolog.local
+      application_pool: SCC
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\SCC\SCCWebEmpregador
+      parameters: logfile.directory::D:\ParanaBanco\Aplicativos\Funcao\SCC\SCCWebEmpregador\logs
+    register: website
+
+  - name: WebAcesso IIS site
+    win_iis_website:
+      name: WebAcesso
+      state: started
+      port: 80
+      ip: '*'
+      hostname: webacesso_hml_2.prbhomolog.local
+      application_pool: WebAcesso
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebAcesso
+      parameters: logfile.directory::D:\ParanaBanco\Aplicativos\Funcao\WebAcesso\logs
+    register: website
+
+  - name: PositivoWeb IIS site
+    win_iis_website:
+      name: PositivoWeb
+      state: started
+      port: 80
+      ip: '*'
+      hostname: positivoweb_hml_2.prbhomolog.local
+      application_pool: PositivoWeb
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\PositivoWeb
+      parameters: logfile.directory::D:\ParanaBanco\Aplicativos\Funcao\PositivoWeb\logs
+    register: website
+
+  - name: Default IIS site
+    win_iis_website:
+      name: Default
+      state: started
+      port: 80
+      ip: '*'
+      hostname: wsfuncao_hml_2.prbhomolog.local
+      application_pool: Default
+      physical_path: D:\ParanaBanco\Aplicativos\inetpub\wwwroot
+      parameters: logfile.directory::D:\ParanaBanco\Aplicativos\inetpub\wwwroot\logs
+    register: website
+
+#Adicionar os virtuais applications no Site Default
+  - name: C3 IIS site on Default
+    win_iis_webapplication:
+      name: C3
+      site: Default
+      application_pool: C3
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\C3
+
+  - name: FluxogramaEsteira IIS site on Default
+    win_iis_webapplication:
+      name: FluxogramaEsteira
+      site: Default
+      application_pool: FluxogramaEsteira
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FluxogramaEsteira
+
+  - name: MonitorAmbiente IIS site on Default
+    win_iis_webapplication:
+      name: MonitorAmbiente
+      site: Default
+      application_pool: MonitorAmbiente
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MonitorAmbiente
+
+  - name: WsAcesso IIS site on Default
+    win_iis_webapplication:
+      name: WsAcesso
+      site: Default
+      application_pool: WsAcesso
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsAcesso
+
+  - name: WSCDC IIS site on Default
+    win_iis_webapplication:
+      name: WSCDC
+      site: Default
+      application_pool: WSCDC
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsCDC
+
+  - name: WsCDC_CRM IIS site on Default
+    win_iis_webapplication:
+      name: WsCDC_CRM
+      site: Default
+      application_pool: WSCDC_CRM
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsCDC_CRM
+
+  - name: WSGEDOC IIS site on Default
+    win_iis_webapplication:
+      name: WSGEDOC
+      site: Default
+      application_pool: WSGedoc
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WSGEDOC
+
+  - name: WSSIC IIS site on Default
+    win_iis_webapplication:
+      name: WSSIC
+      site: Default
+      application_pool: WSSIC
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WSSIC
+
+  - name: WsIncDuploControle IIS site on Default
+    win_iis_webapplication:
+      name: WsIncDuploControle
+      site: Default
+      application_pool: WSIncDuploControle
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WSDuploControle
+
+  - name: WsConsultasFuncao IIS site on Default
+    win_iis_webapplication:
+      name: WsConsultasFuncao
+      site: Default
+      application_pool: WSConsultasFuncao
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsConsultasFuncao
+
+  - name: CSGDuplo IIS site on Default
+    win_iis_webapplication:
+      name: CSGDuplo
+      site: Default
+      application_pool: CSGDuplo
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\CSGDuplo
+
+  - name: WebIntegracaoDuplo IIS site on Default
+    win_iis_webapplication:
+      name: WebIntegracaoDuplo
+      site: Default
+      application_pool: WebIntegracaoDuplo
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebIntegracaoDuplo
+
+  - name: WebCDC IIS site on Default
+    win_iis_webapplication:
+      name: WebCDC
+      site: Default
+      application_pool: WebCDC
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebCDC
+
+  - name: WsMonitor IIS site on Default
+    win_iis_webapplication:
+      name: WsMonitor
+      site: Default
+      application_pool: WsMonitor
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsMonitor
+
+  - name: WsAutorizador IIS site on Default
+    win_iis_webapplication:
+      name: WsAutorizador
+      site: Default
+      application_pool: WsAutorizador
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsAutorizador
+
+  - name: WebComissao IIS site on Default
+    win_iis_webapplication:
+      name: WebComissao
+      site: Default
+      application_pool: WebComissao
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebComissao
+
+  - name: MiniSiteAutorizador IIS site on Default
+    win_iis_webapplication:
+      name: MiniSiteAutorizador
+      site: Default
+      application_pool: MiniSiteAutorizador
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MiniSiteAutorizador
+
+  - name: WsDuploControle IIS site on Default
+    win_iis_webapplication:
+      name: WsDuploControle
+      site: Default
+      application_pool: WsDuploControle
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WsDuploControle
+
+  - name: FIApiAutorizadorConsultarInfoPlanProp IIS site on Default
+    win_iis_webapplication:
+      name: FIApiAutorizadorConsultarInfoPlanProp
+      site: Default
+      application_pool: FIApiAutorizadorConsultarInfoPlanProp
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutorizadorConsultarInfoPlanProp
+
+  - name: WebCCob IIS site on Default
+    win_iis_webapplication:
+      name: WebCCob
+      site: Default
+      application_pool: WebCcob
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebCCob
+
+  - name: WebLiberacao IIS site on Default
+    win_iis_webapplication:
+      name: WebLiberacao
+      site: Default
+      application_pool: WebLiberacao
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebLiberacao
+
+  - name: WebTabelas IIS site on Default
+    win_iis_webapplication:
+      name: WebTabelas
+      site: Default
+      application_pool: WebTabelas
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebTabelas
+
+  - name: MCBWeb IIS site on Default
+    win_iis_webapplication:
+      name: MCBWeb
+      site: Default
+      application_pool: MCBWeb
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MCBWeb
+
+  - name: AverbacaoOnline IIS site on Default
+    win_iis_webapplication:
+      name: AverbacaoOnline
+      site: Default
+      application_pool: AverbacaoOnline
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FI.WebAPI.AverbacaoOnline
+
+  - name: ConsultarMargem IIS site on Default
+    win_iis_webapplication:
+      name: ConsultarMargem
+      site: Default
+      application_pool: ConsultarMargem
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FIApiEmprConsultarMargem
+
+  - name: ConsultaStatusAverbacao IIS site on Default
+    win_iis_webapplication:
+      name: ConsultaStatusAverbacao
+      site: Default
+      application_pool: ConsultaStatusAverbacao
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\MotorAverbacao\FIApiEmprConsultaStatusAverbacao
+
+  - name: FIApiCdcRelInformeRendimentos IIS site on Default
+    win_iis_webapplication:
+      name: FIApiCdcRelInformeRendimentos
+      site: Default
+      application_pool: FIApiCdcRelInformeRendimentos
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIApiCdcRelInformeRendimentos
+
+  - name: FIWebAPIINSS IIS site on Default
+    win_iis_webapplication:
+      name: FIWebAPIINSS
+      site: Default
+      application_pool: FIWebAPIINSS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIINSS
+
+  - name: FIWebAPIAverbacaoOnline IIS site on Default
+    win_iis_webapplication:
+      name: FIWebAPIAverbacaoOnline
+      site: Default
+      application_pool: FIWebAPIAverbacaoOnline
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIAverbacaoOnline
+
+  - name: WebBacen IIS site on Default
+    win_iis_webapplication:
+      name: WebBacen
+      site: Default
+      application_pool: WebBacen
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebBacen
+
+  - name: WebCdcContabil IIS site on Default
+    win_iis_webapplication:
+      name: WebCdcContabil
+      site: Default
+      application_pool: WebCdcContabil
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebCdcContabil
+
+  - name: FIApiAutEsteira IIS site on Default
+    win_iis_webapplication:
+      name: FIApiAutEsteira
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutEsteira
+
+  - name: FIApiAutProposta IIS site on Default
+    win_iis_webapplication:
+      name: FIApiAutProposta
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIApiAutProposta
+
+  - name: FIApiPropostaFGTS IIS site on Default
+    win_iis_webapplication:
+      name: FIApiPropostaFGTS
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIApiPropostaFGTS
+
+  - name: FIWebAPIFGTSSaldos IIS site on Default
+    win_iis_webapplication:
+      name: FIWebAPIFGTSSaldos
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSSaldos
+
+  - name: FIWebAPIFGTSSolicitarReserva IIS site on Default
+    win_iis_webapplication:
+      name: FIWebAPIFGTSSolicitarReserva
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSSolicitarReserva
+
+  - name: FIWebAPIFGTSStatusReserva IIS site on Default
+    win_iis_webapplication:
+      name: FIWebAPIFGTSStatusReserva
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FIWebAPIFGTSStatusReserva
+
+  - name: SubSiteFGTS IIS site on Default
+    win_iis_webapplication:
+      name: SubSiteFGTS
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\SubSiteFGTS
+
+  - name: WebFGTS IIS site on Default
+    win_iis_webapplication:
+      name: WebFGTS
+      site: Default
+      application_pool: FGTS
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\WebFGTS
+
+  - name: FICTC IIS site on Default
+    win_iis_webapplication:
+      name: FICTC
+      site: Default
+      application_pool: FICTC
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FICTC
+
+  - name: WebAutorizador FICTC IIS site on Default
+    win_iis_webapplication:
+      name: FICTC
+      site: WebAutorizador
+      application_pool: FICTC
+      state: present
+      physical_path: D:\ParanaBanco\Aplicativos\Funcao\FICTC\CTC
+
+# Inlcuir usuário e senha nos Applications Pool e WebSites
+
+  - name: Set usuario App Pool e WebSites
+    win_shell: C:\Temp\pacotes\set_permission_IIS_Funcao.ps1
+
+# Install Zabbix Agent
+
+  - name: Install Zabbix Agent
+    win_shell: C:\Temp\pacotes\zabbix_hml.ps1
+
+# Install McAfee Agent
+
+  - name: Install McAfee Agent
+    win_shell: C:\Temp\pacotes\mcafee.ps1
+
+# Adicionar Grupo da Sustentação - Funcao RDP Admin como Administrator Local
+  - name: Add Grupo da Sustentação - Funcao RDP Admin no Grupo ADM Local
+    win_group_membership:
+      name: Administrators
+      members:
+        - homolog.jm\HMLFuncaoRDPAdmin
+      state: present
+
+  - name: Remove previously added share
+    win_share:
+      name: install
+      state: absent
+    
+  - name: Remove directory structure
+    win_file:
+      path: C:\Temp\
+      state: absent

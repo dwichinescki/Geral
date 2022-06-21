@@ -1,0 +1,89 @@
+---
+- hosts: windows_funcao_db_hml
+  gather_facts: no
+  tasks:
+
+# Inicialização dos discos
+  - name: Get disk facts
+    win_disk_facts:
+  - name: Initialize Disk 1
+    win_shell: "Initialize-Disk -Number 1"
+  - name: Initialize Disk 2
+    win_shell: "Initialize-Disk -Number 2"
+  - name: Initialize Disk 3
+    win_shell: "Initialize-Disk -Number 3"
+  - name: Initialize Disk 4
+    win_shell: "Initialize-Disk -Number 4"
+  - name: Initialize Disk 5
+    win_shell: "Initialize-Disk -Number 5"
+  - name: Initialize Disk 6
+    win_shell: "Initialize-Disk -Number 6"
+
+# Criação das partições
+  - name: Create Partition Disk 1 Drive F - MSSQL
+    win_partition:
+      drive_letter: "F"
+      partition_size: -1
+      disk_number: "1"
+  - name: Create Partition Disk 2 Drive D - DADOS
+    win_partition:
+      drive_letter: "D"
+      partition_size: -1
+      disk_number: "2"
+  - name: Create Partition Disk 3 Drive E - DATA2
+    win_partition:
+      drive_letter: "E"
+      partition_size: -1
+      disk_number: "3"
+  - name: Create Partition Disk 4 Drive T - TEMPDB
+    win_partition:
+      drive_letter: "T"
+      partition_size: -1
+      disk_number: "4"
+  - name: Create Partition Disk 5 Drive L - LOG
+    win_partition:
+      drive_letter: "L"
+      partition_size: -1
+      disk_number: "5"
+  - name: Create Partition Disk 6 Drive I - DW_INDICES
+    win_partition:
+      drive_letter: "I"
+      partition_size: -1
+      disk_number: "6"
+
+# Formatação das Partições
+  - name: Format the partition as NTFS Drive F
+    win_format:
+      drive_letter: "F"
+      file_system: NTFS
+      new_label: MSSQL
+
+  - name: Format the partition as NTFS Drive D
+    win_format:
+      drive_letter: "D"
+      file_system: NTFS
+      new_label: DATA
+
+  - name: Format the partition as NTFS Drive E
+    win_format:
+      drive_letter: "E"
+      file_system: NTFS
+      new_label: DATA2
+  
+  - name: Format the partition as NTFS Drive L
+    win_format:
+      drive_letter: "L"
+      file_system: NTFS
+      new_label: LOG
+
+  - name: Format the partition as NTFS Drive I
+    win_format:
+      drive_letter: "I"
+      file_system: NTFS
+      new_label: DW_INDICES
+
+  - name: Format the partition as NTFS Drive T
+    win_format:
+      drive_letter: "T"
+      file_system: NTFS
+      new_label: TEMPDB

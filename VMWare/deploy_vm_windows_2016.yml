@@ -1,0 +1,63 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: False
+  vars:
+  tasks:
+  - name: Load vars file
+    include_vars: vars.yaml
+  - name: Create a Linux Virtual Machine
+    vmware_guest:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      validate_certs: no
+      name: "{{ vars.vm_name }}"
+      datacenter: "{{ vars.datacenter }}"
+      cluster: "{{ vars.cluster }}"
+      folder: "{{ vars.folder }}"
+      template: "{{ vars.template }}"
+      datastore: "{{ vars.datastore }}"
+      annotation: "{{ vars.annotation }}"
+      disk:
+      - size_gb: "{{ vars.disk1_size }}"
+      hardware:
+        memory_mb: "{{ vars.memory_mb }}"
+        num_cpus: "{{ vars.num_cpus }}"
+      networks:
+        - name: "{{ vars.portgroup }}"
+          ip: "{{ vars.ip_address }}"
+          netmask: "{{ vars.netmask }}"
+          gateway: "{{ vars.gateway }}"
+          dns_servers:
+          - "{{ vars.dns1 }}"
+          - "{{ vars.dns2 }}"
+      customization:
+        hostname: "{{ vars.hostname }}"
+        domain: "{{ vars.dominio }}"
+        password: "{{ domain_pwd }}"
+        joindomain: "{{ vars.dominio }}"
+        domainadmin: "{{ domain_user }}"
+        domainadminpassword: "{{ domain_pwd }}"
+        windows_remote_desktop_enabled: true
+        windows_remote_desktop_firewall: allow
+      wait_for_customization: yes
+      wait_for_ip_address: True
+      state: poweredon
+    delegate_to: localhost
+  - name: Add disks to virtual machine
+    vmware_guest_disk:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: "{{ vars.datacenter }}"
+      validate_certs: no
+      name: "{{ vars.vm_name }}"
+      disk:
+        - size_gb: "{{ vars.disk2_size }}"
+          type: eagerzeroedthick
+          datastore: "{{ vars.datastore }}"
+          state: present
+          scsi_controller: 0
+          unit_number: 1
+    register: deploy

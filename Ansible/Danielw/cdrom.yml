@@ -1,0 +1,14 @@
+---
+- hosts: win
+  become: no
+  gather_facts: False
+  tasks:
+  - name: Change the CD-ROM from D to H
+    win_shell: |
+        $cd = $NULL
+        $cd = Get-WMIObject -Class Win32_CDROMDrive -ComputerName $env:COMPUTERNAME -ErrorAction Stop
+        if ($cd.Drive -eq "D:")
+        {
+           Write-Output "Changing CD Drive letter from D: to H:"
+           Set-WmiInstance -InputObject ( Get-WmiObject -Class Win32_volume -Filter "DriveLetter = 'D:'" ) -Arguments @{DriveLetter='h:'}
+        }

@@ -1,0 +1,35 @@
+---
+- name: playbook for create app disk
+  hosts: linux
+  become: root
+  tasks:
+    - name: Create partition LVM
+      parted:
+        device: /dev/sdb
+        number: 1
+        flags: [ lvm ]
+        state: present
+    - name: Create PV and VG
+      lvg:
+        vg: pgsqlvg
+        pvs: /dev/sdb1
+    - name: Create LV
+      lvol:
+        vg: pgsqlvg
+        lv: pgsqllv
+        size: 100%FREE
+    - name: Create partition LVM
+      parted:
+        device: /dev/sdc
+        number: 1
+        flags: [ lvm ]
+        state: present
+    - name: Create PV and VG
+      lvg:
+        vg: appvg
+        pvs: /dev/sdc1
+    - name: Create LV
+      lvol:
+        vg: appvg
+        lv: applv
+        size: 100%FREE

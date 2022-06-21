@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2022-04-04T11:46:49Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Openshift Pods</template>
+            <name>Template Openshift Pods</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Pod age</name>
+                </application>
+                <application>
+                    <name>Pod status</name>
+                </application>
+            </applications>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Pod discovery</name>
+                    <type>HTTP_AGENT</type>
+                    <key>pod.discovery</key>
+                    <delay>10m</delay>
+                    <lifetime>7d</lifetime>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Pod age ({#PODNAME})</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pod.age[{#PODNAME}]</key>
+                            <delay>2m</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pod age</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.status.startTime</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$API_ADDRESS}:{$API_PORT}/api/v1/namespaces/{#PODNAMESPACE}/pods/{#PODNAME}</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>Bearer {$API_TOKEN}</value>
+                                </header>
+                            </headers>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Pod status ({#PODNAME})</name>
+                            <type>HTTP_AGENT</type>
+                            <key>pod.status[{#PODNAME}]</key>
+                            <delay>2m</delay>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <applications>
+                                <application>
+                                    <name>Pod status</name>
+                                </application>
+                            </applications>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$.status.phase</params>
+                                </step>
+                            </preprocessing>
+                            <timeout>10s</timeout>
+                            <url>https://{$API_ADDRESS}:{$API_PORT}/api/v1/namespaces/{#PODNAMESPACE}/pods/{#PODNAME}</url>
+                            <headers>
+                                <header>
+                                    <name>Authorization</name>
+                                    <value>Bearer {$API_TOKEN}</value>
+                                </header>
+                            </headers>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>({last(,10m)}&lt;&gt;&quot;Running&quot;) and &#13;
+({last(,10m)}&lt;&gt;&quot;Completed&quot;) and &#13;
+({last(,10m)}&lt;&gt;&quot;Unknown&quot;) and&#13;
+({last(,10m)}&lt;&gt;&quot;Succeeded&quot;)</expression>
+                                    <name>Status do pod {#PODNAME}: {ITEM.LASTVALUE}</name>
+                                    <priority>INFO</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <timeout>30s</timeout>
+                    <url>https://{$API_ADDRESS}:{$API_PORT}/api/v1/pods</url>
+                    <headers>
+                        <header>
+                            <name>Authorization</name>
+                            <value>Bearer {$API_TOKEN}</value>
+                        </header>
+                    </headers>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#PODNAMESPACE}</lld_macro>
+                            <path>$.metadata.namespace</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#PODNAME}</lld_macro>
+                            <path>$.metadata.name</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>JSONPATH</type>
+                            <params>$.items</params>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$API_ADDRESS}</macro>
+                    <value>api.cluster.h.pbtech.net.br</value>
+                </macro>
+                <macro>
+                    <macro>{$API_PORT}</macro>
+                    <value>6443</value>
+                </macro>
+                <macro>
+                    <macro>{$API_TOKEN}</macro>
+                    <type>SECRET_TEXT</type>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>

@@ -1,0 +1,27 @@
+---
+- hosts: windows_funcao_app_hml
+  gather_facts: no
+
+  tasks:
+  - name: Add Install share
+    win_share:
+      name: install
+      description: Config Servidor
+      path: C:\Temp
+      list: no
+      full: Everyone
+
+  - name: Copy folder to c:\temp (results in C:\Temp\temp_files)
+    win_copy:
+      #src: /mnt/c/Temp/automation/Install/pacotes
+      src: /repo_ansible/install/McAfee_Agent_5.7.5.exe
+      dest: \\10.140.10.231\install
+
+  - name: Install Agente McAfee 5.7.5
+    win_package:
+      path: c:\Temp\McAfee_Agent_5.7.5.exe
+      product_id: '{CF2BEA3C-26EA-32F8-AA9B-331F7E34BA97}'
+      arguments:
+        - /install
+        - /passive
+        - /norestart

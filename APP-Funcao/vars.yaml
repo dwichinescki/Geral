@@ -1,0 +1,25 @@
+---  
+# VM Customization
+  iis_pwd: s.s.d0Grup0
+  vm_name: TPRB10231 - TESTE PIPELINE
+  hostname: tprb10231
+  memory_mb: 2048
+  num_cpus: 1
+  disk1_size: 80
+  disk2_size: 20
+  #disk3_size: 10
+  ip_address: 10.140.10.231
+  netmask: 255.255.255.0
+  gateway: 10.140.10.1
+  annotation:  "TESTE CRIACAO VIA PIPELINE \n
+                Responsavel: Daniel Wichinescki / Andre dos Santos \n
+                Setor: CoE Infra Cloud \n
+                Chamado: NA \n
+                Criado em 13/05/2022 por Daniel Wichinescki"
+  dir_pacotes: /var/www/repo_ansible/install/sqlserver 
+            
+
+# Domain Customization
+  dominio: prbhomolog.local
+  dns1: 10.140.10.200
+  dns2: 10.140.10.201

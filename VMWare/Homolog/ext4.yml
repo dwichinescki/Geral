@@ -1,0 +1,22 @@
+---
+- name: playbook for create app disk
+  hosts: linux
+  become: root
+  tasks:
+    - name: Create EXT4 Filesystem
+      filesystem:
+        fstype: ext4
+        dev: /dev/appvg/applv
+    - name: ansible create directory example
+      file:
+        path: /Application
+        state: directory
+    - name: Mount up device by label
+      mount:
+        path: /Application
+        src: /dev/mapper/appvg-applv
+        fstype: ext4
+        state: mounted
+        #state: absent
+        opts: defaults 
+

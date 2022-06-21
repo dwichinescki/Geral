@@ -1,0 +1,61 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: False
+  vars:
+  tasks:
+  - name: Load vars file
+    include_vars: vars.yaml
+  - name: Create a Linux Virtual Machine
+    vmware_guest:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      validate_certs: no
+      name: LPRB10234 - Linux Teste Ansible
+      datacenter: VIVO
+      cluster: VIVO_CL04_HOMOLOG
+      folder: 26_Ansible
+      template: TP_CENTOS_7
+      datastore: DSC_HOMOLOG
+      annotation: "{{ vars.annotation }}"
+      disk:
+      - size_gb: '50'
+      hardware:
+        memory_mb: 8192
+        num_cpus: 4
+      networks:
+        - name: VM_HOMOLOG
+          ip: 10.140.10.234
+          netmask: 255.255.255.0
+          gateway: 10.140.10.1
+          dns_servers:
+          - "{{ dns1 }}"
+          - "{{ dns2 }}"
+      customization:
+        hostname: lprb10234
+        dns_servers:
+        - "{{ dns1 }}"
+        - "{{ dns2 }}"
+      wait_for_customization: yes
+      wait_for_ip_address: True
+      state: poweredon
+    delegate_to: localhost
+    register: disk_facts
+
+  - name: Add disks to virtual machine
+    community.vmware.vmware_guest_disk:
+      hostname: "{{ vars.vcenter_ip }}"
+      username: "{{ vars.vcenter_user }}"
+      password: "{{ vars.vcenter_pwd }}"
+      datacenter: VIVO
+      validate_certs: no
+      name: LPRB10234 - Linux Teste Ansible
+      disk:
+        - size_gb: 30
+          type: eagerzeroedthick
+          datastore: DSC_HOMOLOG
+          state: present
+          scsi_controller: 0
+          unit_number: 1
+          scsi_type: 'paravirtual'

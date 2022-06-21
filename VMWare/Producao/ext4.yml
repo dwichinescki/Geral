@@ -1,0 +1,39 @@
+---
+- name: playbook for create app disk
+  hosts: linux
+  become: root
+  tasks:
+    - name: Create EXT4 Filesystem PGSQL
+      filesystem:
+        fstype: ext4
+        dev: /dev/pgsqlvg/pgsqllv
+    - name: ansible create directory example
+      file:
+        path: /usr/pgsql-11
+        state: directory
+    - name: Mount up device by label
+      mount:
+        path: /usr/pgsql-11
+        src: /dev/mapper/pgsqlvg-pgsqllv
+        fstype: ext4
+        state: mounted
+        #state: absent
+        opts: defaults
+
+    - name: Create EXT4 Filesystem APP
+      filesystem:
+        fstype: ext4
+        dev: /dev/appvg/applv
+    - name: ansible create directory example
+      file:
+        path: /opt/sonarqube
+        state: directory
+    - name: Mount up device by label
+      mount:
+        path: /opt/sonarqube
+        src: /dev/mapper/appvg-applv
+        fstype: ext4
+        state: mounted
+        #state: absent
+        opts: defaults 
+

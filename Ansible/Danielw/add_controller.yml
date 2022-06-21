@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: False
+  vars:
+  tasks:
+  - name: Add Controller 1 and Disk
+    community.vmware.vmware_guest_controller:
+      hostname: 10.41.22.202
+      username: terraform@vsphere.local
+      password: P4r4n4.2022
+      datacenter: VIVO
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      controllers:
+      - state: present
+        type: paravirtual
+    delegate_to: localhost
+  - name: Add disks to virtual machine
+    community.vmware.vmware_guest_disk:
+      hostname: 10.41.22.202
+      username: terraform@vsphere.local
+      password: P4r4n4.2022
+      datacenter: VIVO
+      validate_certs: no
+      name: TPRB10233 - Teste Ansible
+      disk:
+        - size_gb: 50
+          type: eagerzeroedthick
+          datastore: DSC_HOMOLOG
+          state: present
+          scsi_controller: 1
+          unit_number: 0
+          scsi_type: 'paravirtual'
+    delegate_to: localhost

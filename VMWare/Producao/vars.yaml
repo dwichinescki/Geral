@@ -1,0 +1,37 @@
+---  
+  vcenter_user: terraform@vsphere.local
+  vcenter_pwd: P4r4n4.2022
+  domain_user: terraform
+  domain_pwd: P4r4n4.2022
+  vcenter_ip: 10.41.22.202
+  template: TP_CENTOS_7
+  datastore: DSC_HOMOLOG
+  folder: 14_HOMOLOG/TFS-BUILD
+  cluster: VIVO_CL04_HOMOLOG
+  datacenter: VIVO
+  portgroup: VM_HOMOLOG
+
+
+  # VM Customization
+  vm_name: LPRB10077 - SONARQUBE
+  hostname: lprb10077
+  memory_mb: 4096
+  num_cpus: 2
+  disk1_size: 50
+  disk2_size: 20
+  disk3_size: 10
+  ip_address: 10.140.10.77
+  netmask: 255.255.255.0
+  gateway: 10.140.10.1
+  annotation:  "SONARQUBE \n
+                Responsavel: Eleandro Rodrigues da Silva Filho \n
+                Setor: SQUAD PLATAFORMA \n
+                Chamado: INF-58459 \n
+                Criado em 28/04/2022 por Daniel Wichinescki"
+  dir_pacotes: /var/www/repo_ansible/install/sqlserver 
+            
+
+# Domain Customization
+  dominio: prbhomolog.local
+  dns1: 10.140.10.200
+  dns2: 10.140.10.201

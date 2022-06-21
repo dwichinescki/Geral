@@ -1,0 +1,89 @@
+---
+# Configuração do SO
+- hosts: win
+  become: no
+  gather_facts: False
+  tasks:
+
+# Desabilita Windows Firewall
+  - name: Disable Domain firewall
+    win_firewall:
+      state: disabled
+      profiles:
+      - Domain
+    tags: disable_firewall
+
+# Configura Timezone
+  - name: "Set the TimeZone"
+    win_timezone:
+      timezone: "E. South America Standard Time"
+
+# Altera letra do CD-ROM de D para E
+  - name: Change the CD-ROM from D to E
+    win_shell: |
+        $cd = $NULL
+        $cd = Get-WMIObject -Class Win32_CDROMDrive -ComputerName $env:COMPUTERNAME -ErrorAction Stop
+        if ($cd.Drive -eq "D:")
+        {
+           Write-Output "Changing CD Drive letter from D: to E:"
+           Set-WmiInstance -InputObject ( Get-WmiObject -Class Win32_volume -Filter "DriveLetter = 'D:'" ) -Arguments @{DriveLetter='E:'}
+        }
+
+# Rescan discos windows
+  - name: Get disk facts
+    win_disk_facts:
+
+# Inicializa disco da partição D
+  - name: Initialize Disk 1
+    win_shell: "Initialize-Disk -Number 1"
+
+# Cria partição D
+  - name: Create Partition Disk 1 Drive D
+    win_partition:
+      drive_letter: "D"
+      partition_size: -1
+      disk_number: "1"
+
+# Formata partição D
+  - name: Format the partition as NTFS Drive D
+    win_format:
+      drive_letter: "D"
+      file_system: NTFS
+      new_label: APP
+
+# Cria Share temporário com permissão everyone
+  - name: Add Install share
+    win_share:
+      name: install
+      description: Config Servidor
+      path: C:\Temp
+      list: no
+      full: Everyone
+
+# Copia script e instalador zabbix
+  - name: Copy folder to c:\temp (results in C:\Temp\temp_files)
+    win_copy:
+      src: /repo_ansible/install/pacotes #Servidor LPRBH10055 - 10.140.10.55
+      dest: \\10.140.10.186\install
+
+# Install Zabbix Agent - do sucesso
+
+  - name: Install Zabbix Agent
+    win_shell: C:\Temp\pacotes\zabbix_hml.ps1
+
+# Install Zabbix Agent
+
+  - name: Install McAfee Agent
+    win_shell: C:\Temp\pacotes\mcafee.ps1
+
+# Remove Share temporário
+  - name: Remove previously added share
+    win_share:
+      name: install
+      state: absent
+
+# Remove arquivos diretório C:\Temp
+  - name: Remove directory structure
+    win_file:
+      path: C:\Temp\zabbix
+      state: absent

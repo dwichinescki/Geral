@@ -1,0 +1,28 @@
+---
+# Configuração do SO
+- hosts: win
+  become: no
+  gather_facts: False
+  tasks:
+
+# Install Zabbix Agent
+
+  - name: Install Zabbix Agent
+    win_shell: C:\Temp\pacotes\zabbix_hml.ps1
+
+# Install McAfee Agent
+
+#  - name: Install McAfee Agent
+#    win_shell: C:\Temp\pacotes\mcafee.ps1
+
+# Remove Share temporário
+  - name: Remove previously added share
+    win_share:
+      name: install
+      state: absent
+
+# Remove arquivos diretório C:\Temp
+  - name: Remove directory structure
+    win_file:
+      path: C:\Temp\
+      state: absent

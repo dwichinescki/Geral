@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<forticlient_configuration>
+    <partial_configuration>1</partial_configuration>
+    <vpn>
+        <sslvpn>
+            <connections>
+                <connection>
+                    <name>VPN PRB</name>
+                    <description />
+                    <server>sslvpn.paranabanco.com.br:4434</server>
+                    <username />
+                    <single_user_mode>0</single_user_mode>
+                    <ui>
+                        <show_remember_password>0</show_remember_password>
+                    </ui>
+                    <password />
+                    <warn_invalid_server_certificate>1</warn_invalid_server_certificate>
+                    <prompt_certificate>0</prompt_certificate>
+                    <prompt_username>1</prompt_username>
+                    <on_connect>
+                        <script>
+                            <os>windows</os>
+                            <script>
+                                <![CDATA[]]>
+                            </script>
+                        </script>
+                    </on_connect>
+                    <on_disconnect>
+                        <script>
+                            <os>windows</os>
+                            <script>
+                                <![CDATA[]]>
+                            </script>
+                        </script>
+                    </on_disconnect>
+                </connection>
+                <connection>
+                    <name>VPN PRB Certificado</name>
+                    <description />
+                    <server>sslvpn.paranabanco.com.br:4434</server>
+                    <username />
+                    <allow_standard_user_use_system_cert>1</allow_standard_user_use_system_cert>
+                    <single_user_mode>0</single_user_mode>
+                    <ui>
+                        <show_remember_password>0</show_remember_password>
+                    </ui>
+                    <password />
+                    <warn_invalid_server_certificate>0</warn_invalid_server_certificate>
+                    <prompt_certificate>1</prompt_certificate>
+                    <prompt_username>1</prompt_username>
+                    <on_connect>
+                        <script>
+                            <os>windows</os>
+                            <script>
+                                <![CDATA[]]>
+                            </script>
+                        </script>
+                    </on_connect>
+                    <on_disconnect>
+                        <script>
+                            <os>windows</os>
+                            <script>
+                                <![CDATA[]]>
+                            </script>
+                        </script>
+                    </on_disconnect>
+                </connection>
+            </connections>
+        </sslvpn>
+    </vpn>
+</forticlient_configuration>
