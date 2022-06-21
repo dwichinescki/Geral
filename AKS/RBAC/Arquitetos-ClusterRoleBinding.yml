@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: PrbAksArquitetosGlobal
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: PrbAksArquitetosGlobal
+subjects:
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksDevGlobalR
+  name: "c8b1f0e9-9112-4c0c-99b3-8e0c8b66beb9"

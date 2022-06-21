@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: prbsdconveios-hml-webapi
+ namespace: bff-convenios-hml
+spec:
+  selector:
+    matchLabels:
+      name: prbsdconveios-hml-webapi
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        name: prbsdconveios-hml-webapi
+      name: prbsdconveios-hml-webapi
+    spec:
+      containers:
+        - name: prbsdconveios-hml-webapi
+          image: crprbdev.azurecr.io/prbsdconvenios.back.webapi:$(Build.BuildNumber)
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: prbsdconveios-hml-webapi
+          resources:
+            limits:
+              memory: "250Mi"
+              cpu: "100m"
+            requests:
+              memory: "250Mi"
+              cpu: "10m"
+          readinessProbe:
+            httpGet:
+              path: /api/infra
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 90
+          livenessProbe:
+            httpGet:
+              path: /api/infra
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 90

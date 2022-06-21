@@ -1,0 +1,13 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: prbsdconvenios-dev-webapi
+  namespace: bff-convenios-dev
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: prbsdconvenios-dev-webapi
+    apiVersion: apps/v1
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 75

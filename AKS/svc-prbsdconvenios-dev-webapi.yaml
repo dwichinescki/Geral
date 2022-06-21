@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prbsdconvenios-dev-webapi
+  namespace: bff-convenios-dev
+  labels:
+    name: prbsdconvenios-dev-webapi
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    name: prbsdconvenios-dev-webapi

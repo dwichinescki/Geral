@@ -1,0 +1,51 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: PrbAksDevEstagiarioR-role
+  namespace: portalinstitucional-homolog
+rules:
+  - apiGroups: ["", "extensions", "apps"]
+    resources: ["deployments", "replicasets", "pods", "pods/status", "pods/logs", "services", "ingresses", "configmaps", "daemonsets", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["", "extensions", "apps"]
+    resources: ["services", "ingresses", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: PrbAksDevEstagiarioR-role
+  namespace: ortalinstitucional-homolog
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: "PrbAksDevEstagiarioR@"
+    namespace: ortalinstitucional-homolog
+roleRef:
+  kind: Role
+  name: yre-role
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: yre-dashboard-role-binding
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "yre@mycompany.onmicrosoft.com"
+roleRef:
+  kind: Role
+  name: user-dashboard-role
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: user-dashboard-role
+  namespace: kube-system
+rules:
+  - apiGroups: [""]
+    resources: ["services/proxy"]
+    verbs: ["get"]

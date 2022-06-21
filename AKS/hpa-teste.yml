@@ -1,0 +1,13 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: teste-deploy-dev
+  namespace: teste-deploy
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: teste-deploy-dev
+    apiVersion: apps/v1
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 75

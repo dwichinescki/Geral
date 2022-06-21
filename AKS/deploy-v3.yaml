@@ -1,0 +1,200 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: template-prbdefaultbackend
+  xpaas: 1.0.0
+message: Template default para backend
+metadata:
+  annotations:
+    description: Template default para backend
+    openshift.io/display-name: Template Default Backend
+    openshift.io/provider-display-name: PBTech Rancho
+    samples.operator.openshift.io/version: 4.2.12
+    tags: backend
+    version: 1.0.0
+  labels:
+    samples.operator.openshift.io/managed: "true"
+  name: template-prbdefaultbackend
+  namespace: openshift
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      description: The web server's http port.
+    labels:
+      application: ${APP_NAME}
+    name: ${APP_NAME}
+    namespace: ${APP_NAMESPACE}
+  spec:
+    ports:
+    - port: ${{APP_PORT}}
+      targetPort: ${{APP_TARGET_PORT}}
+    selector:
+      deploymentConfig: ${APP_NAME}
+- apiVersion: v1
+  id: ${APP_NAME}-https
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's https service.
+      haproxy.router.openshift.io/timeout: 160s
+    labels:
+      application: ${APP_NAME}
+    name: ${APP_NAME}
+    namespace: ${APP_NAMESPACE}
+  spec:
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      name: ${APP_NAME}
+- apiVersion: autoscaling/v2beta2
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: ${APP_NAME}
+    namespace: ${APP_NAMESPACE}
+  spec:
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: ${APP_NAME}
+    minReplicas: ${{APP_REPLICAS}}
+    maxReplicas: ${{MAX_REPLICAS}}
+    metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: ${{HPA_AVG_USAGE}}
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      application: ${APP_NAME}
+      maistra.io/expose-route: 'true'
+    annotations:
+      sidecar.istio.io/inject: 'false'
+    name: ${APP_NAME}
+    namespace: ${APP_NAMESPACE}
+  spec:
+    replicas: ${{APP_REPLICAS}}
+    selector:
+      matchLabels:
+        application: ${APP_NAME}
+        deploymentConfig: ${APP_NAME}
+    revisionHistoryLimit: 20
+    strategy:
+      activeDeadlineSeconds: 21600
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          application: ${APP_NAME}
+          deploymentConfig: ${APP_NAME}
+          maistra.io/expose-route: 'true'
+        name: ${APP_NAME}
+        namespace: ${APP_NAMESPACE}
+      spec:
+        revisionHistoryLimit: 100
+        containers:
+        - envFrom:
+          - configMapRef:
+              name: ${CONFIG_MAP}
+          image: ${APP_IMAGE}
+          imagePullPolicy: IfNotPresent
+          name: ${APP_NAME}
+          readinessProbe:
+            httpGet:
+              path: ${APP_READINESS_CHECK}
+              port: ${{APP_TARGET_PORT}}
+            initialDelaySeconds: ${{INITIAL_DELAY_READINESS}}
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: ${APP_LIVEVENESS_CHECK}
+              port: ${{APP_TARGET_PORT}}
+            initialDelaySeconds: ${{INITIAL_DELAY_LIVENESS}}
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 5
+          ports:
+          - containerPort: ${{APP_TARGET_PORT}}
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              memory: ${MEMORY_LIMIT}
+              cpu: ${CPU_LIMIT}
+            requests:
+              memory: ${MEMORY_REQUEST}
+              cpu: ${CPU_REQUEST}
+        nodeSelector:
+          node-worker: "true"
+        terminationGracePeriodSeconds: 75
+    triggers: []
+parameters:
+- description: Nome da aplicacao
+  displayName: Nome da aplicacao
+  name: APP_NAME
+  required: true
+- description: Nome da imagem da aplicacao
+  displayName: Nome da imagem da aplicacao
+  name: APP_IMAGE
+  required: true
+- description: namespace
+  name: APP_NAMESPACE
+  value: homolog
+- description: Porta do container
+  displayName: Porta do container
+  name: APP_TARGET_PORT
+  required: true
+- description: Porta do service
+  displayName: Porta do service
+  name: APP_PORT
+  required: true
+- description: Container memory limit
+  name: MEMORY_LIMIT
+  value: 1Gi
+- description: Container memory limit
+  name: MEMORY_REQUEST
+  value: 1Gi
+- description: Container cpu limit
+  name: CPU_LIMIT
+  value: 150m
+- description: Container cpu Request
+  name: CPU_REQUEST
+  value: 100m
+- description: Numero de replicas
+  name: APP_REPLICAS
+  value: "2"
+- description: Health check endpoint
+  name: APP_LIVEVENESS_CHECK
+  value: /api/infra
+- description: Health check endpoint
+  name: APP_READINESS_CHECK
+  value: /api/infra
+- description: Initial delay seconds for liveness
+  name: INITIAL_DELAY_LIVENESS
+  value: "90"
+- description: Initial delay seconds for Readiness
+  name: INITIAL_DELAY_READINESS
+  value: "90"
+- description: configMapRef
+  name: CONFIG_MAP
+  value: "doesnotexists"
+- description:
+  name: MAX_REPLICAS
+  value: "2"
+- description:
+  name: HPA_AVG_USAGE
+  value: "75"

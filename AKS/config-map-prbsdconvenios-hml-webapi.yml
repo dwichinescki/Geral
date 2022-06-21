@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prbsdconvenios-hml-webapi
+  namespace: bff-convenios-hml
+data:
+  ASPNETCORE_ENVIRONMENT: Homolog
+  ASPNET_ENVIRONMENT: Homolog

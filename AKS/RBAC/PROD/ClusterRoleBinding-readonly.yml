@@ -1,0 +1,27 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: PrbAksClusterReader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: PrbAksClusterReadonlyRole
+subjects:
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksDevGlobalR
+  name: "93b0e30e-fa50-4e8c-9a85-8fa0e4cc5ffa"
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksDevEstagiarioR
+  name: "7f329842-dc1a-4007-810e-bd15f52c94ac"
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksPoR
+  name: "debc0c28-8924-4d31-890b-5835a0276f3e"
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksQaEstagiarioR
+  name: "040b936e-8588-4647-bf8d-e423bb9cbe9c"
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksQaGlobalR
+  name: "e58968c3-68ca-4f53-b596-71f74df0351a"
+- kind: Group
+  #name: groupObjectId # Your Azure AD Group Object ID: PrbAksSI
+  name: "ce66285a-b97d-4658-908e-4f5287918da5"

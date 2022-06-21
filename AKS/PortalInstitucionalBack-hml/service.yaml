@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prb-wp-portal-institucional-hml
+  namespace: portalinstitucional-hml
+  labels:
+    name: prb-wp-portal-institucional-hml
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 443
+  selector:
+    name: prb-wp-portal-institucional-hml
