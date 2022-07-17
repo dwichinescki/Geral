@@ -1,0 +1,17 @@
+az aks create \
+    --resource-group prb-hml-aks-pv \
+    --name prb-hml-aks-pv \
+    --node-count 1 \
+	--generate-ssh-keys \
+    --network-plugin kubenet --network-policy calico \
+    --service-cidr 10.0.0.0/16 \
+    --dns-service-ip 10.0.0.10 \
+    --pod-cidr 10.244.0.0/16 \
+    --docker-bridge-address 172.17.0.1/16 \
+	--zones 1 2 3 \
+	--enable-private-cluster \
+	--node-vm-size Standard_B2s \
+	--attach-acr /subscriptions/19d24e10-1ddf-4f7e-9615-abd8dc3b88d3/resourceGroups/PRB_ContainerRegistry/providers/Microsoft.ContainerRegistry/registries/CRPRBDev \
+    --vnet-subnet-id /subscriptions/19d24e10-1ddf-4f7e-9615-abd8dc3b88d3/resourceGroups/PRB_Network/providers/Microsoft.Network/virtualNetworks/Azure_RedeVirtual/subnets/prb-hml-aks-pv \
+    --service-principal 4baf689f-c87f-4c85-bc28-9c4f3a9cc80b \
+    --client-secret UXF8Q~FfvV5fJ5iw9_dxgdTYR2ke9N7HEwxJpc4B
